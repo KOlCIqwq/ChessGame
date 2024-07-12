@@ -10,6 +10,7 @@ public class Board extends JPanel{
 
     public Board(String fen){
         setLayout(new GridLayout(8,8));
+        //Board = new char[8][8];
         char[][] Board = parseFEN(fen);
         boolean isWhite = true;
         
@@ -25,7 +26,7 @@ public class Board extends JPanel{
                 if (piece != ' '){
                     String image = getImageName(piece);
                     ImagePanel imagePanel = new ImagePanel("C:/Users/liu12/Desktop/Useful/Chess/Resources/" + image + ".png", isWhite ? Color.WHITE : Color.BLACK);
-                    cell.add(imagePanel, BorderLayout.CENTER);
+                    cell.setImagePanel(imagePanel);
                 } else{
                     if (isWhite){
                         cell.setBackground(Color.WHITE);
@@ -34,10 +35,9 @@ public class Board extends JPanel{
                     }
                 }
 
-                cell.addMouseListener(new java.awt.event.MouseAdapter() {
+                cell.addMouseListener(new MouseAdapter() {
                     @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        System.out.println("Clicked cell at: (" + cell.getRow() + ", " + cell.getCol() + ")");
+                    public void mouseClicked(MouseEvent e) {
                         handleClick(cell);
                     }
                 });
@@ -77,7 +77,7 @@ public class Board extends JPanel{
                 if (piece != ' '){
                     String image = getImageName(piece);
                     ImagePanel imagePanel = new ImagePanel("C:/Users/liu12/Desktop/Useful/Chess/Resources/" + image + ".png", isWhite ? Color.WHITE : Color.BLACK);
-                    cell.add(imagePanel, BorderLayout.CENTER);
+                    cell.setImagePanel(imagePanel);
                 } else{
                     if (isWhite){
                         cell.setBackground(Color.WHITE);
@@ -87,28 +87,15 @@ public class Board extends JPanel{
                 }
                 
 
-                cell.addMouseListener(new java.awt.event.MouseAdapter() {
+                cell.addMouseListener(new MouseAdapter() {
                     @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        System.out.println("Clicked cell at: (" + cell.getRow() + ", " + cell.getCol() + ")");
+                    public void mouseClicked(MouseEvent e) {
                         handleClick(cell);
                     }
                 });
 
                 add(cell);
                 isWhite = !isWhite;
-
-                //cell.add(new ImagePanel("C:/Users/liu12/Desktop/Useful/Chess/Resources/wr.png"));
-                // Add mouse listener to print coordinates
-                /* 
-                cell.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        System.out.println("Clicked cell at: (" + cell.getRow() + ", " + cell.getCol() + ")");
-                    }
-                });*/
-
-                
             }
             isWhite = !isWhite;
             
@@ -172,27 +159,40 @@ public class Board extends JPanel{
     private void handleClick(Cell cell){
         
         if (selectedCell == null){
-            System.out.println("1");
-            //if (cell.getImagePanel() != null){
+            if (cell.getImagePanel() != null){
                 selectedCell = cell;
                 cell.setBackground(Color.YELLOW);
-            
+            } else{
+                JOptionPane.showMessageDialog(this, "No Piece");
+            }
         } else{
-            System.out.println("2");
             if (cell != selectedCell){
-                cell.setImagePanel(selectedCell.getImagePanel());
-                Board[cell.getRow()][cell.getCol()] = Board[selectedCell.getRow()][selectedCell.getCol()];
-                selectedCell.setImagePanel(null);
-                Board[selectedCell.getRow()][selectedCell.getCol()] = ' ';
-                // Update FEN string and redraw the board
-                String newFEN = updateFEN();
-                removeAll();
-                setLayout(new GridLayout(8, 8));
-                Board = parseFEN(newFEN);
-                Draw();
+                if (cell.getImagePanel() == null){
+                    movePiece(selectedCell, cell);
+                } else{
+                    JOptionPane.showMessageDialog(this, "Dest contains a piece");
+                }
             }
             selectedCell.setBackground((selectedCell.getRow() + selectedCell.getCol()) % 2 == 0 ? Color.WHITE : Color.BLACK);
             selectedCell = null;
+        }
+    }
+
+    private void movePiece (Cell fromCell, Cell toCell){
+        if (fromCell != null && toCell != null) {
+            toCell.setImagePanel(fromCell.getImagePanel());
+            Board[toCell.getRow()][toCell.getCol()] = Board[fromCell.getRow()][fromCell.getCol()];
+            fromCell.setImagePanel(null);
+            Board[fromCell.getRow()][fromCell.getCol()] = ' ';
+
+            String newFEN = updateFEN();
+            removeAll();
+            setLayout(new GridLayout(8,8));
+            Board = parseFEN(newFEN);
+            Draw();
+        }
+        else{
+            JOptionPane.showMessageDialog(this, "Invalid Dest");
         }
     }
 
