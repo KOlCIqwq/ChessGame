@@ -1,105 +1,65 @@
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import javax.swing.*;
 
-public class Board extends JPanel{
-    private Cell selectedCell;
-    private char[][] Board;
+public class Board extends JPanel {
+    private char[][] boardArray;  // Store board state (8x8 grid)
+    private Cell[][] cells;       // 2D array of Cell objects
+    
+    public Board(String fen) {
+        setLayout(new GridLayout(8, 8));
+        boardArray = parseFEN(fen);
+        cells = new Cell[8][8];
+        initializeBoard();
+    }
 
-    public Board(String fen){
-        setLayout(new GridLayout(8,8));
-        //Board = new char[8][8];
-        char[][] Board = parseFEN(fen);
+    // Initialize the board with cells and pieces
+    private void initializeBoard() {
         boolean isWhite = true;
-        
-        // Loop the Board
-        for (int row = 0; row < 8; row++){
-            for (int col = 0; col < 8; col++){
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Cell cell = new Cell(row, col, this);  // Pass reference of Board
+                cells[row][col] = cell;
                 
-                Cell cell = new Cell(row,col);
-                cell.setLayout(new BorderLayout());
-                
-                // The piece is the current Board cell
-                char piece = Board[row][col];
-                if (piece != ' '){
-                    String image = getImageName(piece);
-                    ImagePanel imagePanel = new ImagePanel("C:/Users/liu12/Desktop/Useful/Chess/Resources/" + image + ".png", isWhite ? Color.WHITE : Color.BLACK);
+                // Add piece images based on board state
+                char piece = boardArray[row][col];
+                if (piece != ' ') {
+                    String imageName = getImageName(piece);
+                    ImagePanel imagePanel = new ImagePanel("Resources/" + imageName + ".png", isWhite ? Color.WHITE : Color.BLACK);
                     cell.setImagePanel(imagePanel);
-                } else{
-                    if (isWhite){
-                        cell.setBackground(Color.WHITE);
-                    } else{
-                        cell.setBackground(Color.BLACK);
-                    }
                 }
-
-                cell.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        handleClick(cell);
-                    }
-                });
-
+                
                 add(cell);
                 isWhite = !isWhite;
-
-                //cell.add(new ImagePanel("C:/Users/liu12/Desktop/Useful/Chess/Resources/wr.png"));
-                // Add mouse listener to print coordinates
-                /* 
-                cell.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        System.out.println("Clicked cell at: (" + cell.getRow() + ", " + cell.getCol() + ")");
-                    }
-                });*/
-
-                
             }
-            isWhite = !isWhite;
-            
+            isWhite = !isWhite; // Toggle color every row
         }
     }
 
-    private void Draw(){
-        boolean isWhite = true;
-        
-        // Loop the Board
-        for (int row = 0; row < 8; row++){
-            for (int col = 0; col < 8; col++){
-                
-                Cell cell = new Cell(row,col);
-                cell.setLayout(new BorderLayout());
-                
-                // The piece is the current Board cell
-                char piece = Board[row][col];
-                if (piece != ' '){
-                    String image = getImageName(piece);
-                    ImagePanel imagePanel = new ImagePanel("C:/Users/liu12/Desktop/Useful/Chess/Resources/" + image + ".png", isWhite ? Color.WHITE : Color.BLACK);
-                    cell.setImagePanel(imagePanel);
-                } else{
-                    if (isWhite){
-                        cell.setBackground(Color.WHITE);
-                    } else{
-                        cell.setBackground(Color.BLACK);
-                    }
+    // Get the Cell at a given mouse location
+    public Cell getCellAtLocation(Point location) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Cell cell = cells[row][col];
+                Rectangle bounds = cell.getBounds();
+                if (bounds.contains(location)) {
+                    return cell;
                 }
-                
-
-                cell.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        handleClick(cell);
-                    }
-                });
-
-                add(cell);
-                isWhite = !isWhite;
             }
-            isWhite = !isWhite;
-            
         }
+        return null;  // Return null if no valid cell is found
+    }
+
+    // Update the board array after a piece has moved
+    public void updateBoardArray(Cell fromCell, Cell toCell) {
+        char piece = boardArray[fromCell.getRow()][fromCell.getCol()];
+        boardArray[toCell.getRow()][toCell.getCol()] = piece;  // Move the piece to the new cell
+        boardArray[fromCell.getRow()][fromCell.getCol()] = ' ';  // Empty the old cell
+    }
+
+    // Redraw the board visually after the move
+    public void redrawBoard() {
+        removeAll();  // Clear the current board
+        initializeBoard();  // Reinitialize the board with updated state
         revalidate();
         repaint();
     }
@@ -135,9 +95,8 @@ public class Board extends JPanel{
         return Board;
     }
 
-    // Convert the char of the cell into it's png format
-    private String getImageName(char piece){
-        
+    // Helper to get image names for pieces
+    private String getImageName(char piece) {
         switch (piece) {
             case 'r': return "br";
             case 'n': return "bn";
@@ -154,77 +113,5 @@ public class Board extends JPanel{
             default: return "";
         }
     }
-
-    // Handle the cellclick
-    private void handleClick(Cell cell){
-        
-        if (selectedCell == null){
-            if (cell.getImagePanel() != null){
-                selectedCell = cell;
-                cell.setBackground(Color.YELLOW);
-            } else{
-                JOptionPane.showMessageDialog(this, "No Piece");
-            }
-        } else{
-            if (cell != selectedCell){
-                if (cell.getImagePanel() == null){
-                    movePiece(selectedCell, cell);
-                } else{
-                    JOptionPane.showMessageDialog(this, "Dest contains a piece");
-                }
-            }
-            selectedCell.setBackground((selectedCell.getRow() + selectedCell.getCol()) % 2 == 0 ? Color.WHITE : Color.BLACK);
-            selectedCell = null;
-        }
-    }
-
-    private void movePiece (Cell fromCell, Cell toCell){
-        if (fromCell != null && toCell != null) {
-            toCell.setImagePanel(fromCell.getImagePanel());
-            Board[toCell.getRow()][toCell.getCol()] = Board[fromCell.getRow()][fromCell.getCol()];
-            fromCell.setImagePanel(null);
-            Board[fromCell.getRow()][fromCell.getCol()] = ' ';
-
-            String newFEN = updateFEN();
-            removeAll();
-            setLayout(new GridLayout(8,8));
-            Board = parseFEN(newFEN);
-            Draw();
-        }
-        else{
-            JOptionPane.showMessageDialog(this, "Invalid Dest");
-        }
-    }
-
-    private String updateFEN() {
-        StringBuilder fen = new StringBuilder();
-    
-        for (int row = 0; row < 8; row++) {
-            int emptyCount = 0;
-    
-            for (int col = 0; col < 8; col++) {
-                char piece = Board[row][col];
-    
-                if (piece == ' ') {
-                    emptyCount++;
-                } else {
-                    if (emptyCount > 0) {
-                        fen.append(emptyCount);
-                        emptyCount = 0;
-                    }
-                    fen.append(piece);
-                }
-            }
-    
-            if (emptyCount > 0) {
-                fen.append(emptyCount);
-            }
-    
-            if (row < 7) {
-                fen.append('/');
-            }
-        }
-        System.err.println(fen.toString());
-        return fen.toString();
-    }
 }
+
