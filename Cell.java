@@ -34,12 +34,19 @@ class Cell extends JPanel {
                 if (dragging) {
                     Point releaseLocation = e.getLocationOnScreen();
                     Cell targetCell = board.getCellAtLocation(releaseLocation); // Get the cell at the mouse release position
+                    Cell fromCell = board.getCellAtLocation(initialClick);
+                    boolean sameColor = board.checkSameColor(fromCell, targetCell);
+                    
                     
                     if (targetCell != null && targetCell.getImagePanel() == null) {
                         movePieceTo(targetCell);
                     } else {
-                        // Invalid move, snap back
+                        if (sameColor){
+                            // Invalid move, snap back
                         resetPiecePosition();
+                        } else{
+                            movePieceTo(targetCell);
+                        }
                     }
                     dragging = false;
                 }
@@ -101,4 +108,6 @@ class Cell extends JPanel {
     public int getCol(){
         return col;
     }
+
+    
 }

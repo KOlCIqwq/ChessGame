@@ -1,4 +1,6 @@
 import java.awt.*;
+import java.util.Arrays;
+
 import javax.swing.*;
 
 public class Board extends JPanel {
@@ -112,6 +114,27 @@ public class Board extends JPanel {
             case 'P': return "wp";
             default: return "";
         }
+    }
+
+    public boolean checkSameColor (Cell fromCell, Cell toCell){
+        char fromPiece = boardArray[fromCell.getRow()][fromCell.getCol()];
+        char toPiece = boardArray[toCell.getRow()][toCell.getCol()];
+
+        
+        
+        System.out.println(fromPiece);
+        System.out.println(toPiece);
+        System.out.println(Arrays.deepToString(boardArray));
+
+        if ((Character.isUpperCase(fromPiece) && Character.isUpperCase(toPiece)) || (Character.isLowerCase(fromPiece) && Character.isLowerCase(toPiece))){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+    public char getPiece(Cell cell){
+        return boardArray[cell.getRow()][cell.getCol()];
     }
 }
 
