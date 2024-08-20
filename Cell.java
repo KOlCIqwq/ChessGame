@@ -10,6 +10,7 @@ class Cell extends JPanel {
     private Point initialClick;     // To track the starting point of the drag
     private boolean dragging = false; // Flag to track if dragging is happening
     private Board board;            // Reference to the main Board object
+    private Cell fromCell;
 
     // Constructor
     public Cell(int row, int col, Board board) {
@@ -24,8 +25,11 @@ class Cell extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (imagePanel != null) {
-                    initialClick = e.getPoint();
+                    initialClick = e.getLocationOnScreen();
                     dragging = true;
+                    // Capture the starting cell (fromCell) at the beginning of the drag
+                    Point boardLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
+                    fromCell = board.getCellAtLocation(boardLocation);
                 }
             }
 
@@ -34,19 +38,16 @@ class Cell extends JPanel {
                 if (dragging) {
                     Point releaseLocation = e.getLocationOnScreen();
                     Cell targetCell = board.getCellAtLocation(releaseLocation); // Get the cell at the mouse release position
-                    Cell fromCell = board.getCellAtLocation(initialClick);
+                    
+                    System.out.println(board.getPiece(fromCell));
                     boolean sameColor = board.checkSameColor(fromCell, targetCell);
                     
                     
-                    if (targetCell != null && targetCell.getImagePanel() == null) {
+                    if (targetCell != null && targetCell.getImagePanel() == null || !sameColor) {
                         movePieceTo(targetCell);
                     } else {
-                        if (sameColor){
-                            // Invalid move, snap back
+                        // Invalid move, snap back
                         resetPiecePosition();
-                        } else{
-                            movePieceTo(targetCell);
-                        }
                     }
                     dragging = false;
                 }

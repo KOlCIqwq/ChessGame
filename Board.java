@@ -120,10 +120,9 @@ public class Board extends JPanel {
         char fromPiece = boardArray[fromCell.getRow()][fromCell.getCol()];
         char toPiece = boardArray[toCell.getRow()][toCell.getCol()];
 
-        
-        
-        System.out.println(fromPiece);
-        System.out.println(toPiece);
+        System.out.println("From Piece: " + fromPiece + " at (" + fromCell.getRow() + ", " + fromCell.getCol() + ")");
+        System.out.println("To Piece: " + toPiece + " at (" + toCell.getRow() + ", " + toCell.getCol() + ")");
+        System.out.println("Full Board Array:");
         System.out.println(Arrays.deepToString(boardArray));
 
         if ((Character.isUpperCase(fromPiece) && Character.isUpperCase(toPiece)) || (Character.isLowerCase(fromPiece) && Character.isLowerCase(toPiece))){
