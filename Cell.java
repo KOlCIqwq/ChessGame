@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 class Cell extends JPanel {
     private int row;
     private int col;
+    private Piece piece;
     private ImagePanel imagePanel;  // The image of the piece
     private Point initialClick;     // To track the starting point of the drag
     private boolean dragging = false; // Flag to track if dragging is happening
@@ -35,35 +36,46 @@ class Cell extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (dragging) {
-                    Point releaseLocation = e.getLocationOnScreen();
-                    Cell targetCell = board.getCellAtLocation(releaseLocation); // Get the cell at the mouse release position
-                    
-                    System.out.println(board.getPiece(fromCell));
-                    boolean sameColor = board.checkSameColor(fromCell, targetCell);
-                    
-                    
-                    if (targetCell != null && targetCell.getImagePanel() == null || !sameColor) {
-                        movePieceTo(targetCell);
-                    } else {
-                        // Invalid move, snap back
-                        resetPiecePosition();
-                    }
-                    dragging = false;
+    if (dragging) {
+        Point releaseLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
+        Cell targetCell = board.getCellAtLocation(releaseLocation);
+
+        if (targetCell != null && fromCell != null) {
+            boolean sameColor = board.checkSameColor(fromCell, targetCell);
+
+            if (!sameColor) {
+                Piece movingPiece = fromCell.getpiece();
+                if (movingPiece != null && movingPiece.isValidMove(targetCell.getRow(), targetCell.getCol(), board)) {
+                    movePieceTo(targetCell);
+                } else{
+                    resetPiecePosition();
                 }
             }
+        } else {
+            resetPiecePosition();  // Snap back if the move is invalid
+        }
+        dragging = false;
+    }
+}
         });
 
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (dragging) {
+                if (dragging && imagePanel != null) {
                     Point locationOnScreen = e.getLocationOnScreen();
-                    // Adjust the imagePanel to move with the mouse
                     imagePanel.setLocation(locationOnScreen.x - initialClick.x, locationOnScreen.y - initialClick.y);
                 }
             }
         });
+    }
+
+    public Piece getpiece(){
+        return piece;
+    }
+
+    public void setPiece(Piece piece){
+        this.piece = piece;
     }
 
     // Setters and Getters for ImagePanel
@@ -91,13 +103,17 @@ class Cell extends JPanel {
         // Update the board array
         board.updateBoardArray(this, targetCell);
 
-        // Redraw the board to reflect the changes
+        targetCell.revalidate();
+        targetCell.repaint();
+        this.revalidate();
+        this.repaint();
+
         board.redrawBoard();
     }
 
     // Reset the piece back to its original position if the move is invalid
     private void resetPiecePosition() {
-        // You can implement this by revalidating the original cell's content
+        // If the move is invalid, reset the piece to its original position
         revalidate();
         repaint();
     }
@@ -109,6 +125,4 @@ class Cell extends JPanel {
     public int getCol(){
         return col;
     }
-
-    
 }
