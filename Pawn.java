@@ -19,4 +19,7 @@ public class Pawn extends Piece{
         }
         return false;
     }
+    public char getFENchar() {
+        return isWhite ? 'P' : 'p';
+    }
 }

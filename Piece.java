@@ -11,6 +11,8 @@ public abstract class Piece {
 
     public abstract boolean isValidMove(int tgtRow, int tgtCol, Board board);
 
+    public abstract char getFENchar();
+
     public boolean isWhite(){
         return isWhite;
     }

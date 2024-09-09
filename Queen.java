@@ -10,4 +10,7 @@ public class Queen extends Piece{
         int dCol = Math.abs(targetCol - col);
         return (row == targetRow || col == targetCol) || (dRow == dCol);
     }
+    public char getFENchar() {
+        return isWhite ? 'Q' : 'q';
+    }
 }

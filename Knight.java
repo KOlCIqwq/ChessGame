@@ -9,4 +9,7 @@ public class Knight extends Piece{
         int dCol = Math.abs(tgtCol - col);
         return (dRow == 2 && dCol == 1) || (dRow == 1 && dCol == 2);
     }
+    public char getFENchar() {
+        return isWhite ? 'N' : 'n';
+    }
 }

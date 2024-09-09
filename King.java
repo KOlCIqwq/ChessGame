@@ -9,5 +9,8 @@ public class King extends Piece{
         int dCol = Math.abs(tgtCol - col);
         return (dRow <= 1 && dCol <= 1);
     }
+    public char getFENchar() {
+        return isWhite ? 'K' : 'k';
+    }
 }
 

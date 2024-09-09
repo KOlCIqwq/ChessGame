@@ -1,9 +1,10 @@
 import java.awt.*;
 import javax.swing.*;
 
-public class Board extends JPanel {
+public class Board extends JLayeredPane {
     private char[][] boardArray;  // Store board state (8x8 grid)
     private Cell[][] cells;       // 2D array of Cell objects
+    
     
     public Board(String fen) {
         setLayout(new GridLayout(8, 8));
@@ -75,8 +76,10 @@ public class Board extends JPanel {
     }
 
     // Redraw the board visually after the move
-    public void redrawBoard() {
-        
+    public void redrawBoard(String fen) {
+        this.boardArray = parseFEN(fen);
+        removeAll();
+        initializeBoard();
         revalidate();
         repaint();
     }
@@ -110,6 +113,33 @@ public class Board extends JPanel {
             }
         }
         return board;
+    }
+
+    // Function that construct the FEN notation of current board
+    public String toFEN(){
+        StringBuilder fen = new StringBuilder();
+        for(int row = 0; row < 8; row ++){
+            int counte = 0;
+            for(int col = 0; col < 8; col++){
+                Piece piece = cells[row][col].getpiece();
+                if (piece == null){
+                    counte++;
+                } else{
+                    if (counte > 0){
+                        fen.append(counte);
+                        counte = 0;
+                    }
+                    fen.append(piece.getFENchar());
+                }
+            }
+            if (counte > 0){
+                fen.append(counte);
+            }
+            if (row < 7){
+                fen.append('/');
+            }
+        }
+        return fen.toString();
     }
 
     // Helper to get image names for pieces

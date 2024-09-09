@@ -36,27 +36,27 @@ class Cell extends JPanel {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-    if (dragging) {
-        Point releaseLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
-        Cell targetCell = board.getCellAtLocation(releaseLocation);
+                if (dragging) {
+                Point releaseLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
+                Cell targetCell = board.getCellAtLocation(releaseLocation);
 
-        if (targetCell != null && fromCell != null) {
-            boolean sameColor = board.checkSameColor(fromCell, targetCell);
+                if (targetCell != null && fromCell != null) {
+                    boolean sameColor = board.checkSameColor(fromCell, targetCell);
 
-            if (!sameColor) {
-                Piece movingPiece = fromCell.getpiece();
-                if (movingPiece != null && movingPiece.isValidMove(targetCell.getRow(), targetCell.getCol(), board)) {
-                    movePieceTo(targetCell);
-                } else{
-                    resetPiecePosition();
+                    if (!sameColor) {
+                        Piece movingPiece = fromCell.getpiece();
+                        if (movingPiece != null && movingPiece.isValidMove(targetCell.getRow(), targetCell.getCol(), board)) {
+                            movePieceTo(targetCell);
+                        } else{
+                            resetPiecePosition();
+                        }
+                    }
+                } else {
+                resetPiecePosition();  // Snap back if the move is invalid
+                }
+                dragging = false;
                 }
             }
-        } else {
-            resetPiecePosition();  // Snap back if the move is invalid
-        }
-        dragging = false;
-    }
-}
         });
 
         addMouseMotionListener(new MouseAdapter() {
@@ -102,13 +102,8 @@ class Cell extends JPanel {
 
         // Update the board array
         board.updateBoardArray(this, targetCell);
-
-        targetCell.revalidate();
-        targetCell.repaint();
-        this.revalidate();
-        this.repaint();
-
-        board.redrawBoard();
+        String newFEN = board.toFEN();
+        board.redrawBoard(newFEN);
     }
 
     // Reset the piece back to its original position if the move is invalid

@@ -10,4 +10,7 @@ public class Rook extends Piece {
         }
         return false;
     }
+    public char getFENchar() {
+        return isWhite ? 'R' : 'r';
+    }
 }
