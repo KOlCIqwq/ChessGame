@@ -70,6 +70,13 @@ public class Board extends JLayeredPane {
         return null;  // Return null if no valid cell is found
     }
 
+    public Cell getCell(int row, int col){
+        if(row >= 0 && row < 8 && col >= 0 && col < 8){
+            return cells[row][col];
+        }
+        return null;
+    }
+
     // Update the board array after a piece has moved
     public void updateBoardArray(Cell fromCell, Cell toCell) {
         Piece movingPiece = fromCell.getpiece();
