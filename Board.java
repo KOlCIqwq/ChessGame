@@ -4,6 +4,11 @@ import javax.swing.*;
 public class Board extends JLayeredPane {
     private char[][] boardArray;  // Store board state (8x8 grid)
     private Cell[][] cells;       // 2D array of Cell objects
+    private char activeColor;
+    private String castling;
+    private String enPSquare;
+    private int halfMoveClock;
+    private int fullMoveClock;
     
     
     public Board(String fen) {
@@ -86,7 +91,8 @@ public class Board extends JLayeredPane {
 
     // Convert FEN notation into a String table
     public char[][] parseFEN(String fen){
-        String[] rows = fen.split("/"); // Split the String into pieces by /
+        String[] parts = fen.split(" ");
+        String[] rows = parts[0].split("/"); // Split the String into pieces by /
         char[][] board = new char[8][8];
 
         for (int row = 0; row < 8; row++){
@@ -112,6 +118,20 @@ public class Board extends JLayeredPane {
                 }
             }
         }
+        // The second part is the active color (w or b)
+        activeColor = parts[1].charAt(0);
+
+        // The third part is the castling rights (KQkq or -)
+        castling = parts[2];
+
+        // The fourth part is the en passant target square (e.g., e3 or -)
+        enPSquare = parts[3];
+
+        // The fifth part is the halfmove clock (integer)
+        halfMoveClock = Integer.parseInt(parts[4]);
+
+        // The sixth part is the fullmove number (integer)
+        fullMoveClock = Integer.parseInt(parts[5]);
         return board;
     }
 
@@ -139,6 +159,18 @@ public class Board extends JLayeredPane {
                 fen.append('/');
             }
         }
+        // Append active color
+        fen.append(" ").append(activeColor);
+
+        // Append castling rights
+        fen.append(" ").append(castling);
+
+        // Append en passant target square
+        fen.append(" ").append(enPSquare);
+
+        // Append halfmove clock and fullmove number
+        fen.append(" ").append(halfMoveClock).append(" ").append(fullMoveClock);
+        System.err.println(fen.toString());
         return fen.toString();
     }
 
@@ -170,6 +202,63 @@ public class Board extends JLayeredPane {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public boolean isRightColor(Piece piece){
+        if (piece == null){
+            return false;
+        }
+        // If the piece is white and it's white's turn, return true
+        // If the piece is black and it's black's turn, return true
+        return (piece.isWhite() && activeColor == 'w') || (!piece.isWhite() && activeColor == 'b');
+    }
+
+    public void swichTurn(){
+        activeColor = (activeColor == 'w') ? 'b' : 'w'; // Switch to b if the current is w otherwise w
+    }
+
+    public boolean canCastle(){
+        if (activeColor == 'w' && (castling.contains("K") || castling.contains("Q"))){
+            return true;
+        }
+        if (activeColor == 'b' && (castling.contains("k") || castling.contains("q"))){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean canCastleKingSide(){
+        int row = 0;
+        if (activeColor == 'w'){
+            row = 7;
+        }
+        return boardArray[row][5] == ' ' && boardArray[row][6] == ' ';
+    }
+    public boolean canCastleQueenSide(){
+        int row = 0;
+        if (activeColor == 'w'){
+            row = 7;
+        }
+        return boardArray[row][1] == ' ' && boardArray[row][2] == ' ' && boardArray[row][3] == ' ';
+    }
+    public void updateCastling(Piece piece) {
+        if (piece instanceof King) {
+            if (piece.isWhite()) {
+                castling = castling.replace("K", "").replace("Q", "");
+            } else {
+                castling = castling.replace("k", "").replace("q", "");
+            }
+        } else if (piece instanceof Rook) {
+            if (piece.isWhite() && piece.getRow() == 7 && piece.getCol() == 0) {
+                castling = castling.replace("Q", "");
+            } else if (piece.isWhite() && piece.getRow() == 7 && piece.getCol() == 7) {
+                castling = castling.replace("K", "");
+            } else if (!piece.isWhite() && piece.getRow() == 0 && piece.getCol() == 0) {
+                castling = castling.replace("q", "");
+            } else if (!piece.isWhite() && piece.getRow() == 0 && piece.getCol() == 7) {
+                castling = castling.replace("k", "");
+            }
         }
     }
 }

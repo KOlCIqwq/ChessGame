@@ -31,30 +31,36 @@ class Cell extends JPanel {
                     // Capture the starting cell (fromCell) at the beginning of the drag
                     Point boardLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
                     fromCell = board.getCellAtLocation(boardLocation);
+                    if (fromCell != null && !board.isRightColor(fromCell.getpiece())){
+                        dragging = false;
+                    }
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (dragging) {
-                Point releaseLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
-                Cell targetCell = board.getCellAtLocation(releaseLocation);
-
-                if (targetCell != null && fromCell != null) {
+                    Point releaseLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
+                    Cell targetCell = board.getCellAtLocation(releaseLocation);
                     boolean sameColor = board.checkSameColor(fromCell, targetCell);
-
-                    if (!sameColor) {
+                    if (targetCell != null && fromCell != null && !sameColor) {
                         Piece movingPiece = fromCell.getpiece();
-                        if (movingPiece != null && movingPiece.isValidMove(targetCell.getRow(), targetCell.getCol(), board)) {
+                        // Handle Castle
+                        if (movingPiece instanceof King && Math.abs(targetCell.getCol() - fromCell.getCol()) == 2){
+                            if(board.canCastle() && (board.canCastleKingSide() || board.canCastleQueenSide())){
+                                movePieceTo(targetCell);
+                                performCastle(targetCell);
+                            }
+                        } else if (movingPiece != null && movingPiece.isValidMove(targetCell.getRow(), targetCell.getCol(), board) && board.isRightColor(movingPiece)) {
                             movePieceTo(targetCell);
+                            board.swichTurn();
                         } else{
                             resetPiecePosition();
                         }
+                    } else {
+                    resetPiecePosition();  // Snap back if the move is invalid
                     }
-                } else {
-                resetPiecePosition();  // Snap back if the move is invalid
-                }
-                dragging = false;
+                    dragging = false;
                 }
             }
         });
@@ -96,16 +102,45 @@ class Cell extends JPanel {
 
     // Move the piece to the target cell
     private void movePieceTo(Cell targetCell) {
-        // Move the piece visually
+            // Move the piece visually
+            targetCell.setImagePanel(this.getImagePanel());
+            this.setImagePanel(null);
+
+            // Update the board array
+            board.updateBoardArray(this, targetCell);
+            String newFEN = board.toFEN();
+            board.redrawBoard(newFEN);
+    }
+
+    private void performCastle(Cell targetCell){
+        Piece movingKing = this.getpiece();
+        int kingStartCol = this.getCol();
+        int rookStartCol = targetCell.getCol() > kingStartCol ? 7 : 0; // Determine rook position based on castling direction
+        int rookTargetCol = targetCell.getCol() > kingStartCol ? 5 : 3; // Determine where the rook should go
+        int kingTargetCol = targetCell.getCol() > kingStartCol ? 6 : 2; // Determine where the king should go
+
+        // Move the King
+        board.updateBoardArray(this, targetCell);
         targetCell.setImagePanel(this.getImagePanel());
         this.setImagePanel(null);
 
-        // Update the board array
-        board.updateBoardArray(this, targetCell);
+        // Move the Rook
+        Cell rookStartCell = board.getCellAtLocation(new Point(this.getRow(), rookStartCol));
+        Cell rookTargetCell = board.getCellAtLocation(new Point(this.getRow(), rookTargetCol));
+        Piece movingRook = rookStartCell.getpiece();
+
+        rookTargetCell.setImagePanel(rookStartCell.getImagePanel());
+        rookStartCell.setImagePanel(null);
+        board.updateBoardArray(rookStartCell, rookTargetCell);
+
+        ((King) movingKing).setHasMoved(true);
+        ((Rook) movingRook).setHasMoved(true);
+
+        board.updateCastling(movingKing);
         String newFEN = board.toFEN();
+        // Redraw the board after the move
         board.redrawBoard(newFEN);
     }
-
     // Reset the piece back to its original position if the move is invalid
     private void resetPiecePosition() {
         // If the move is invalid, reset the piece to its original position

@@ -9,7 +9,7 @@ public class main {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Prevent heavy ram
             frame.setSize(600,600);
 
-            String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+            String fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
             // Get board class to give the board
             Board board = new Board(fen);
             frame.add(board);

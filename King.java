@@ -1,6 +1,16 @@
 public class King extends Piece{
+    private boolean hasMoved;
     public King(int row, int col, boolean isWhite){
         super(row,col,isWhite);
+        this.hasMoved = false;
+    }
+
+    public boolean hasMoved(){
+        return hasMoved;
+    }
+
+    public void setHasMoved(boolean hasMoved){
+        this.hasMoved = hasMoved;
     }
 
     @Override
