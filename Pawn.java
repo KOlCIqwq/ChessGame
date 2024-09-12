@@ -8,14 +8,17 @@ public class Pawn extends Piece{
         // Pawn moves forward by 1 square (or 2 squares if it's the first move)
         int direction = isWhite ? -1 : 1;
         if (tgtCol == col && tgtRow == row + direction) {
-            // Normal move
-            return true;
+            // 1 square, check if the target cell is null
+            return board.getCell(tgtRow,tgtCol).getpiece() == null;
         } else if (tgtCol == col && row == (isWhite ? 6 : 1) && tgtRow == row + 2 * direction) {
-            // Initial 2-square move
-            return true;
+            // 2 moves, check if midcell and target cell are null
+            Cell interCell = board.getCell(row + direction, col);
+            Cell tgtCell = board.getCell(tgtRow, tgtCol);
+            return interCell.getpiece() == null && tgtCell.getpiece() == null;
         } else if (Math.abs(tgtCol - col) == 1 && tgtRow == row + direction) {
-            // Capture move (diagonal)
-            return true;
+            // If target piece is not null and they're not the same color, it can move
+            Piece targetPiece = board.getCell(tgtRow, tgtCol).getpiece();
+            return targetPiece != null && targetPiece.isWhite() != this.isWhite();
         }
         return false;
     }
