@@ -1,7 +1,8 @@
 import java.awt.*;
 import javax.swing.*;
 
-public class Board extends JLayeredPane {
+public class Board extends JPanel {
+    private JLayeredPane layeredPane;
     private char[][] boardArray;  // Store board state (8x8 grid)
     private Cell[][] cells;       // 2D array of Cell objects
     private char activeColor;
@@ -12,7 +13,11 @@ public class Board extends JLayeredPane {
     
     
     public Board(String fen) {
-        setLayout(new GridLayout(8, 8));
+        setLayout(new GridLayout(8,8));
+        //layeredPane = new JLayeredPane();
+        //layeredPane.setPreferredSize(new Dimension(600,600));
+        //this.add(layeredPane, BorderLayout.CENTER);
+
         boardArray = parseFEN(fen);
         cells = new Cell[8][8];
         initializeBoard();
@@ -24,8 +29,11 @@ public class Board extends JLayeredPane {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
                 Cell cell = new Cell(row, col, this);  // Pass reference of Board
+                //cell.setBounds(col * 75, row * 75, 75, 75);
                 cells[row][col] = cell;
                 
+                //layeredPane.add(cell, JLayeredPane.DEFAULT_LAYER);
+
                 // Add piece images based on board state
                 char pieceChar = boardArray[row][col];
                 if (pieceChar != ' ') {
@@ -33,7 +41,9 @@ public class Board extends JLayeredPane {
                     cell.setPiece(piece);
                     String imageName = getImageName(pieceChar);
                     ImagePanel imagePanel = new ImagePanel("Resources/" + imageName + ".png", isWhite ? Color.WHITE : Color.BLACK);
+                    //imagePanel.setBounds(col * 74, row * 74, 74, 74);  // Set piece position and size
                     cell.setImagePanel(imagePanel);
+                    //layeredPane.add(cell, JLayeredPane.DRAG_LAYER);
                 }
                 
                 add(cell);
@@ -267,5 +277,33 @@ public class Board extends JLayeredPane {
                 castling = castling.replace("k", "");
             }
         }
+    }
+
+    // Implement king check logic
+    public boolean isOpponentKingInCheck(boolean isWhite){
+        Cell opKingCell = findKing(!isWhite); // Find opponent's king position
+
+        for (int row = 0; row < 8; row++){
+            for (int col = 0; col < 8; col++){
+                Piece piece = cells[row][col].getpiece();
+                if (piece != null && piece.isWhite() == isWhite){
+                    if (piece.isValidMove(opKingCell.getRow(), opKingCell.getCol(), this)){
+                        return true; // Opponent king in check
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    public Cell findKing (boolean isWhite){
+        for(int row = 0; row < 8; row++){
+            for (int col = 0; col < 8; col++){
+                Piece piece = cells[row][col].getpiece();
+                if (piece instanceof King && piece.isWhite == isWhite){
+                    return cells[row][col];
+                }
+            }
+        }
+        return null; // king not found
     }
 }

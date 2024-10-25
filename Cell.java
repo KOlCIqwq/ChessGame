@@ -12,14 +12,17 @@ class Cell extends JPanel {
     private boolean dragging = false; // Flag to track if dragging is happening
     private Board board;            // Reference to the main Board object
     private Cell fromCell;
+    private JLayeredPane layeredPane;
 
     // Constructor
     public Cell(int row, int col, Board board) {
         this.row = row;
         this.col = col;
         this.board = board; // Save a reference to the main Board for updating it
-        setLayout(new BorderLayout());  
-        setBackground((row + col) % 2 == 0 ? Color.WHITE : Color.BLACK);  // Set alternating colors
+        this.setLayout(new BorderLayout());
+        //this.setPreferredSize(new Dimension(75,75));
+        //this.setOpaque(true); 
+        setDefaultColor();
 
         // Add MouseListeners for drag and drop
         addMouseListener(new MouseAdapter() {
@@ -43,6 +46,7 @@ class Cell extends JPanel {
                     Point releaseLocation = SwingUtilities.convertPoint(Cell.this, e.getPoint(), board);
                     Cell targetCell = board.getCellAtLocation(releaseLocation);
                     boolean sameColor = board.checkSameColor(fromCell, targetCell);
+
                     if (targetCell != null && fromCell != null && !sameColor) {
                         Piece movingPiece = fromCell.getpiece();
                         // Handle Castle
@@ -54,6 +58,18 @@ class Cell extends JPanel {
                             }
                         } else if (movingPiece != null && movingPiece.isValidMove(targetCell.getRow(), targetCell.getCol(), board) && board.isRightColor(movingPiece)) {
                             movePieceTo(targetCell);
+                            // Check if the move puts the opponent's king in check
+                            boolean opponentInCheck = board.isOpponentKingInCheck(movingPiece.isWhite());
+
+                            //If the opponent's king is in check
+                            if (opponentInCheck){
+                                System.out.println("In check");
+                                Cell opKingCell = board.findKing(!movingPiece.isWhite());
+                                opKingCell.highlight();
+                            } else{
+                                Cell opKingCell = board.findKing(!movingPiece.isWhite());
+                                opKingCell.resetHighlight();
+                            }
                             board.swichTurn();
                         } else{
                             resetPiecePosition();
@@ -62,6 +78,7 @@ class Cell extends JPanel {
                     resetPiecePosition();  // Snap back if the move is invalid
                     }
                     dragging = false;
+                    
                 }
             }
         });
@@ -72,9 +89,18 @@ class Cell extends JPanel {
                 if (dragging && imagePanel != null) {
                     Point locationOnScreen = e.getLocationOnScreen();
                     imagePanel.setLocation(locationOnScreen.x - initialClick.x, locationOnScreen.y - initialClick.y);
+                    //layeredPane.setLayer(imagePanel, JLayeredPane.DRAG_LAYER);  // Ensure the image is always on top while dragging
                 }
             }
         });
+    }
+
+    public void setDefaultColor() {
+        if ((row + col) % 2 == 0) {
+            this.setBackground(Color.WHITE);  // White tile
+        } else {
+            this.setBackground(Color.BLACK);  // Black tile
+        }
     }
 
     public Piece getpiece(){
@@ -158,5 +184,16 @@ class Cell extends JPanel {
 
     public int getCol(){
         return col;
+    }
+
+    public void highlight(){
+        this.setBackground(Color.RED);
+        this.setBorder(BorderFactory.createLineBorder(Color.RED, 3));  // Add red border for check
+        this.revalidate();  // Make sure the component layout is updated
+        this.repaint();     // Trigger a repaint to apply the changes
+    }
+    public void resetHighlight(){
+        this.setBackground(null);
+        repaint();
     }
 }
